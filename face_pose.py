@@ -17,8 +17,10 @@ def get_2D_points(subject):
     chin = shape[8]
     left_mouth_conner = shape[48]
     right_mouth_conner = shape[54]
+    up_eye = shape[37]
+    down_eye = shape[40]
 
-    return np.array([nose_top, chin, left_eye_left, right_eye_right, left_mouth_conner, right_mouth_conner], dtype='double')
+    return np.array([up_eye, down_eye]), np.array([nose_top, chin, left_eye_left, right_eye_right, left_mouth_conner, right_mouth_conner], dtype='double')
 
 ## 3D points
 model_points = np.array(
@@ -60,6 +62,15 @@ def get_pose(model_points, image_points, frame):
     cv2.line(frame, p1, p2, (255, 0 , 0), 2)
 
 
+# add glasses
+def add_glasses(frame, glasses, left_eye_left, right_eye_right, up_eye, down_eye):
+    glasses_width = np.int(np.abs(right_eye_right[0] - left_eye_left[0])*1.3)
+    glasses_height = np.int(np.abs(up_eye[1] - down_eye[1])*1.5)
+    glasses_resized = cv2.resize(glasses, (glasses_width, glasses_height))
+    transparent_region = glasses_resized[:,:,:3] != 0
+
+    frame[int(left_eye_left[1]):int(left_eye_left[1])+glasses_height, int(left_eye_left[0]):int(left_eye_left[0])+glasses_width,:][transparent_region] = glasses_resized[:,:,:3][transparent_region]
+    # frame[int(left_eye_left[0]):int(right_eye_right[0]),int(left_eye_left[1]):int(right_eye_right[1]), :][transparent_region] = glasses_resized[:,:,:3][transparent_region]
 cap = cv2.VideoCapture(0)
 print("[INFO] loading facial landmark predictor...")
 detector = dlib.get_frontal_face_detector()
@@ -73,8 +84,9 @@ while True:
     subjects = detector(gray, 0)
 
     for subject in subjects:
-        image_points = get_2D_points(subject)
+        up_down, image_points = get_2D_points(subject)
         get_pose(model_points, image_points, frame)
+        add_glasses(frame, sunglasses, image_points[2], image_points[3], up_down[0], up_down[1])
     frame = cv2.flip(frame, 1)
     cv2.imshow('out', frame)
     key = cv2.waitKey(1) & 0xFF
