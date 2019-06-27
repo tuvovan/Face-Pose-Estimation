@@ -64,7 +64,7 @@ cap = cv2.VideoCapture(0)
 print("[INFO] loading facial landmark predictor...")
 detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor('shape_predictor_68_face_landmarks.dat')
-
+sunglasses = cv2.imread('sunglasses.png')
 while True:
     ret, frame = cap.read()
     frame = cv2.resize(frame, (600, 600))
