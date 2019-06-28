@@ -1,7 +1,7 @@
 ## need opencv, numpy, imutils and dlib installed
 ## tuvovan
 
-
+import math
 import cv2
 import numpy as np 
 from imutils import face_utils
@@ -51,16 +51,40 @@ def get_pose(model_points, image_points, frame):
 
     dist_coeffs = np.zeros((4,1))
 
-
+    ## new here replace the axis
+    axis = np.float32(
+        [
+            [500,0,0],
+            [0,500,0],
+            [0,0,500]
+        ]
+    )
     (_, rotation_vector, translation_vector) = cv2.solvePnP(model_points, image_points, camera_matrix, dist_coeffs)
 
-    (nose_end_point2D, jacobian) = cv2.projectPoints(np.array([(0.0, 0.0, 1000.0)]), rotation_vector, translation_vector, camera_matrix, dist_coeffs)
+    (nose_end_point2D, jacobian) = cv2.projectPoints(axis, rotation_vector, translation_vector, camera_matrix, dist_coeffs)
+    (modelpts, jacobian2) = cv2.projectPoints(model_points, rotation_vector, translation_vector, camera_matrix, dist_coeffs)
+    rvec_matrix = cv2.Rodrigues(rotation_vector)[0]
+
+    proj_matrix = np.hstack((rvec_matrix, translation_vector))
+
+    eulerAngles = cv2.decomposeProjectionMatrix(proj_matrix)[6]
+
+    pitch, yaw, roll = [math.radians(_) for _ in eulerAngles]
+
+    pitch = math.degrees(math.asin(math.sin(pitch)))
+    yaw = math.degrees(math.asin(math.sin(yaw)))
+    roll = math.degrees(math.asin(math.sin(roll)))
 
     for p in image_points:
         cv2.circle(frame, (int(p[0]), int(p[1])), 3, (0, 0 , 255), -1)
     p1 = (int(image_points[0][0]), int(image_points[0][1]))
-    p2 = (int(nose_end_point2D[0][0][0]), int(nose_end_point2D[0][0][1]))
-    cv2.line(frame, p1, p2, (255, 0 , 0), 2)
+    p2 = tuple(nose_end_point2D[1].ravel())
+    p3 = tuple(nose_end_point2D[0].ravel())
+    p4 = tuple(nose_end_point2D[2].ravel())
+
+    cv2.line(frame, p1, p2, (0, 255 , 0), 3)
+    cv2.line(frame, p1, p3, (255, 0 , 0), 3)
+    cv2.line(frame, p1, p4, (0, 0 , 255), 3)
 
 
 # add glasses
@@ -72,6 +96,9 @@ def add_glasses(frame, glasses, left_eye_left, right_eye_right, up_eye, down_eye
 
     frame[int(left_eye_left[1]):int(left_eye_left[1])+glasses_height, int(left_eye_left[0]):int(left_eye_left[0])+glasses_width,:][transparent_region] = glasses_resized[:,:,:3][transparent_region]
     # frame[int(left_eye_left[0]):int(right_eye_right[0]),int(left_eye_left[1]):int(right_eye_right[1]), :][transparent_region] = glasses_resized[:,:,:3][transparent_region]
+
+
+
 cap = cv2.VideoCapture(0)
 print("[INFO] loading facial landmark predictor...")
 detector = dlib.get_frontal_face_detector()
