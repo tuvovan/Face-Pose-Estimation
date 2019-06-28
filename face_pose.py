@@ -27,8 +27,8 @@ model_points = np.array(
     [
         (0.0, 0.0, 0.0),
         (0.0, -330.0, -65.0),
-        (-225.0, 170.0, -135.0),
-        (225.0, 170.0, -135.0),
+        (-165.0, 170.0, -135.0),
+        (165.0, 170.0, -135.0),
         (-150.0, -150.0, -125.0),
         (150.0, -150.0, -125.0)
     ]
@@ -37,8 +37,9 @@ model_points = np.array(
 ## Get pose
 def get_pose(model_points, image_points, frame):
     size = frame.shape
-    focal_length = size[1]
+    # focal_length = size[1]
     center = (size[1]/2, size[0]/2)
+    focal_length = center[0]/ np.tan(60/2 * np.pi /180)
 
     camera_matrix = np.array(
         [
