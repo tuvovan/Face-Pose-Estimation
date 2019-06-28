@@ -10,3 +10,8 @@ There is a sunglasses part that I added to try as the filter but unfortunately i
 [1]. https://github.com/jerryhouuu/Face-Yaw-Roll-Pitch-from-Pose-Estimation-using-OpenCV
 
 [2]. https://www.learnopencv.com/head-pose-estimation-using-opencv-and-dlib/
+
+Any question or report are warmly welcomed. Drop me an email to: tuvovan@tricubics.com or DM at facebook.com/tieu.than.93
+
+
+Tu Vo
